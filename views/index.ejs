@@ -1,11 +1,141 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-  </body>
+<head>
+  <title><%= title %></title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+  <script type="text/javascript" src="/javascripts/taufik-lib.js"></script>
+</head>
+<body>
+  <h1><%= title %></h1>
+  <p>Daftar Siswa</p>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nama</th>
+        <th>Umur</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+  <form id="form-siswa">
+    <input type="hidden" id="id" value="">
+    <div class="form-group row">
+      <label for="nama" class="col-sm-2 col-form-label">Nama</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="nama" required>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="umur" class="col-sm-2 col-form-label">Umur</label>
+      <div class="col-sm-10">
+        <input type="text" class="form-control" id="umur" required>
+      </div>
+    </div>
+
+    <div class="form-group row">
+      <div class="col-sm-10">
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </div>
+  </form>
+</body>
+<script type="text/javascript">
+$(document).ready(()=>{
+  loadData();
+  $('#form-siswa').submit((e) => {
+    e.preventDefault();
+    saveData();
+  });
+
+
+  $('table tbody').on('click', '.btn-delete', (event) => {
+    deleteData($(event.currentTarget).attr('data-id'))
+  })
+
+  $('table tbody').on('click', '.btn-edit', (event) => {
+    editData($(event.currentTarget).attr('data-id'))
+  })
+})
+const loadData = () => {
+  $.ajax({
+    method: "GET",
+    url: "http://localhost:3000/users",
+    dataType: 'json'
+  })
+  .done(function( hasil ) {
+    let html = '';
+    hasil.forEach(item => {
+      html += `<tr>
+      <td>${item.id}</td>
+      <td>${item.nama}</td>
+      <td>${item.umur}</td>
+      <td>
+      <button type="button" class="btn btn-danger btn-delete" data-id="${item.id}">delete</button>
+      <button type="button" class="btn btn-success btn-edit" data-id="${item.id}">edit</button>
+      </td>
+      </tr>`
+    });
+    $('table tbody').html(html);
+  });
+}
+
+const saveData = () => {
+  let id = $('#id').val();
+  if(id){
+    $.ajax({
+      method: "PUT",
+      url: `http://localhost:3000/users/${id}`,
+      data: {nama: $('#nama').val(), umur: $('#umur').val()},
+      dataType: 'json'
+    })
+    .done(function( hasil ) {
+      loadData();
+      $('#id').val('');
+      $('#nama').val('');
+      $('#umur').val('');
+    });
+  }else{
+    $.ajax({
+      method: "POST",
+      url: "http://localhost:3000/users",
+      data: {nama: $('#nama').val(), umur: $('#umur').val()},
+      dataType: 'json'
+    })
+    .done(function( hasil ) {
+      loadData();
+      $('#id').val('');
+      $('#nama').val('');
+      $('#umur').val('');
+    });
+  }
+}
+const deleteData = (id) => {
+  $.ajax({
+    method: "DELETE",
+    url: `http://localhost:3000/users/${id}`,
+    dataType: 'json'
+  })
+  .done(function( hasil ) {
+    loadData();
+  });
+}
+
+const editData = (id) => {
+  $.ajax({
+    method: "GET",
+    url: `http://localhost:3000/users/${id}`,
+    dataType: 'json'
+  })
+  .done(function( item ) {
+    $('#id').val(item.id);
+    $('#nama').val(item.nama);
+    $('#umur').val(item.umur);
+  });
+}
+
+</script>
 </html>
